@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Master Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:system-ui,Arial}
+.correct{animation:pop .4s}
+.wrong{animation:shake .4s}
+@keyframes pop{0%{transform:scale(.9)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-6px)}100%{transform:translateX(0)}}
+</style>
+</head>
+
+<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 min-h-screen flex items-center justify-center p-4">
+
+<div class="bg-white/95 backdrop-blur p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
+
+<h1 class="text-3xl font-bold mb-2">🧠 Math Master</h1>
+<p class="text-gray-500 mb-4">Entrena tu cerebro</p>
+
+<div class="grid grid-cols-2 gap-2 mb-4">
+<select id="operation" class="p-2 rounded-xl border">
+<option value="sum">➕ Suma</option>
+<option value="sub">➖ Resta</option>
+<option value="mul">✖ Multiplicación</option>
+<option value="div">➗ División</option>
+<option value="mix">🎲 Mixto</option>
+</select>
+
+<select id="difficulty" class="p-2 rounded-xl border">
+<option value="easy">🟢 Fácil</option>
+<option value="medium">🟡 Medio</option>
+<option value="hard">🔴 Difícil</option>
+</select>
+</div>
+
+<div class="flex justify-between mb-4 text-sm font-semibold">
+<div>⏱ Tiempo: <span id="time">60</span></div>
+<div>⭐ Puntos: <span id="score">0</span></div>
+</div>
+
+<div id="question" class="text-4xl font-bold mb-6">Presiona iniciar</div>
+
+<input id="answer" type="number" placeholder="Tu respuesta" class="w-full border p-3 rounded-xl text-center text-lg mb-3" />
+
+<button id="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-2xl mb-2">Responder</button>
+
+<button id="start" class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-2xl">▶ Iniciar juego</button>
+
+<div id="feedback" class="mt-4 font-semibold"></div>
+
+<div class="mt-6 border-t pt-4 text-sm text-gray-600">
+🏆 Récord: <span id="record">0</span>
+</div>
+
+</div>
+
+<script>
+let score=0
+let time=60
+let timer=null
+let currentAnswer=0
+
+const q=document.getElementById('question')
+const ans=document.getElementById('answer')
+const feedback=document.getElementById('feedback')
+
+const scoreEl=document.getElementById('score')
+const timeEl=document.getElementById('time')
+
+const operationEl=document.getElementById('operation')
+const diffEl=document.getElementById('difficulty')
+
+const recordEl=document.getElementById('record')
+
+let record=localStorage.getItem('mathRecord')||0
+recordEl.textContent=record
+
+function rand(max){return Math.floor(Math.random()*max)+1}
+
+function getMax(){
+if(diffEl.value==='easy')return 10
+if(diffEl.value==='medium')return 50
+return 100
+}
+
+function pickOperation(){
+if(operationEl.value!=='mix')return operationEl.value
+const ops=['sum','sub','mul','div']
+return ops[Math.floor(Math.random()*ops.length)]
+}
+
+function newQuestion(){
+let max=getMax()
+let a=rand(max)
+let b=rand(max)
+let op=pickOperation()
+
+if(op==='sum'){currentAnswer=a+b;q.textContent=`${a} + ${b}`}
+if(op==='sub'){currentAnswer=a-b;q.textContent=`${a} - ${b}`}
+if(op==='mul'){currentAnswer=a*b;q.textContent=`${a} × ${b}`}
+if(op==='div'){currentAnswer=a;q.textContent=`${a*b} ÷ ${b}`}
+
+ans.value=''
+ans.focus()
+}
+
+function check(){
+if(time<=0)return
+
+let val=parseInt(ans.value)
+
+if(val===currentAnswer){
+score++
+scoreEl.textContent=score
+feedback.textContent='✅ Correcto'
+feedback.className='text-green-600 font-bold correct'
+}else{
+feedback.textContent='❌ Era '+currentAnswer
+feedback.className='text-red-600 font-bold wrong'
+}
+
+newQuestion()
+}
+
+function startGame(){
+score=0
+scoreEl.textContent=0
+
+ time=60
+ timeEl.textContent=time
+
+ feedback.textContent=''
+
+ newQuestion()
+
+ clearInterval(timer)
+
+ timer=setInterval(()=>{
+ time--
+ timeEl.textContent=time
+
+ if(time<=0){
+ clearInterval(timer)
+ q.textContent='⏰ Tiempo terminado'
+
+ if(score>record){
+ record=score
+ localStorage.setItem('mathRecord',record)
+ recordEl.textContent=record
+ }
+ }
+
+ },1000)
+}
+
+document.getElementById('submit').onclick=check
+
+document.getElementById('start').onclick=startGame
+
+ans.addEventListener('keypress',e=>{
+if(e.key==='Enter')check()
+})
+</script>
+
+</body>
+</html>
